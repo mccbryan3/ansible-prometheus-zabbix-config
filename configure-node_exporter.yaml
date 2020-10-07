@@ -1,0 +1,45 @@
+- name: Configure prometheus
+  hosts: centos
+  gather_facts: yes
+
+  tasks:
+
+    - name: Add node_exporter user
+      ansible.builtin.user:
+        name: node_exporter
+        state: present
+        shell: /bin/false
+        create_home: yes
+
+    - name: Copy the node_export binary to remote host
+      ansible.builtin.copy:
+        src: /usr/local/bin/node_exporter
+        dest: /usr/local/bin/node_exporter
+        owner: node_exporter
+        group: node_exporter
+        mode: 0750
+
+    - name: Copy the node_export service to remote host
+      ansible.builtin.copy:
+        src: files/node_exporter.service
+        dest: /etc/systemd/system/node_exporter.service
+        owner: node_exporter
+        mode: 0644
+      notify: systemd_daemon_reload
+
+    - name: Open firewall for node_exporter
+      ansible.posix.firewalld:
+        port: 9100/tcp
+        state: enabled
+        permanent: yes
+        immediate: yes
+
+  handlers:
+
+    - name: systemd_daemon_reload
+      ansible.builtin.systemd:
+        name: node_exporter
+        state: restarted
+        enabled: yes
+        daemon_reload: yes
+        

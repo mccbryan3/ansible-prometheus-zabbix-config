@@ -1,0 +1,57 @@
+- name: Configure prometheus
+  hosts: centos
+  gather_facts: yes
+  vars_files:
+    vars/main.yaml
+
+  tasks:
+
+    - name: Make promtail directory
+      ansible.builtin.file:
+        name: /etc/promtail
+        state: directory
+        owner: root
+        group: root
+        mode: 01755
+
+    - name: Copy promtail template
+      ansible.builtin.template:
+        src: templates/promtail-config.yaml.j2
+        dest: /etc/promtail/promtail-config.yaml
+        owner: root
+        group: root
+        mode: 0664
+      notify: systemd_daemon_reload
+
+    - name: Copy the promtail binary to remote host
+      ansible.builtin.copy:
+        src: /usr/local/bin/promtail
+        dest: /usr/local/bin/promtail
+        owner: root
+        group: root
+        mode: 0750
+
+    - name: Copy the node_export service to remote host
+      ansible.builtin.copy:
+        src: files/promtail.service
+        dest: /etc/systemd/system/promtail.service
+        owner: root
+        mode: 0644
+      notify: systemd_daemon_reload
+
+    - name: Open firewall for promtail
+      ansible.posix.firewalld:
+        port: 9080/tcp
+        state: enabled
+        permanent: yes
+        immediate: yes
+
+  handlers:
+
+    - name: systemd_daemon_reload
+      ansible.builtin.systemd:
+        name: promtail
+        state: restarted
+        enabled: yes
+        daemon_reload: yes
+        

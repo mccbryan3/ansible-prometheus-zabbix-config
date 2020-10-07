@@ -1,0 +1,5 @@
+loki_server: prometheus.bryan.loc
+zabbix_server: monitoring.bryan.loc
+zabbix_version: 5.0
+zabbix_version_minor: 5.0.0-1
+zabbix_repo: http://repo.zabbix.com/zabbix/{{zabbix_version}}/rhel/{{ansible_distribution_major_version}}/{{ansible_architecture}}/zabbix-agent-{{zabbix_version_minor}}.el{{ansible_distribution_major_version}}.{{ansible_architecture}}.rpm

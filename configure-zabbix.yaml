@@ -1,0 +1,37 @@
+- name: Configure Zabbix agent on guests
+  hosts: centos
+  gather_facts: yes
+  vars_files:
+    vars/main.yaml
+  tasks:
+    
+    - name: Debug the url
+      package:
+        name: "{{ zabbix_repo }}"
+        state: present
+
+    - name: Copy zabbix-agentd template
+      ansible.builtin.template:
+        src: templates/zabbix_agentd.conf.j2 
+        dest: /etc/zabbix/zabbix-agentd.conf
+      notify: restart_zabbix_agent
+
+    - name: Configure zabbix firewall
+      ansible.posix.firewalld:
+        port: 10050-10051/tcp
+        state: enabled
+        permanent: yes
+        immediate: yes
+
+    - name:
+      ansible.builtin.systemd:
+        name: zabbix-agent
+        state: started
+        enabled: yes
+
+  handlers:
+
+    - name: restart_zabbix_agent
+      ansible.builtin.systemd:
+        name: zabbix-agent
+        state: restarted

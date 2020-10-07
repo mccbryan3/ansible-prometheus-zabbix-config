@@ -1,0 +1,13 @@
+[Unit]
+Description=Promtail service
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/promtail --config.file /etc/promtail/promtail-config.yaml
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+RestartForceExitStatus=SIGPIPE
+KillMode=control-group
+
+[Install]
+WantedBy=multi-user.target
